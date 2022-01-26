@@ -1,0 +1,45 @@
+service: graal-runtime-demo
+provider:
+  name: aws
+  runtime: java11
+  region: eu-south-1
+  deploymentBucket:
+    name: generali-${self:service}-${self:provider.stage}-deployment
+
+plugins:
+  - serverless-deployment-bucket
+
+package:
+  artifact: build/package/bundle.zip
+
+functions:
+  hello:
+    handler: not.used
+    role:
+      Fn::GetAtt:
+        - myDefaultRole
+        - Arn
+    runtime: provided
+    events:
+      - http:
+          path: /ping
+          method: get
+
+resources:
+  Resources:
+    myDefaultRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        RoleName: DFGIDL-demo-role
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: 'sts:AssumeRole'
+  extensions:
+    myDefaultRole:
+      Properties:
+        PermissionsBoundary: 'arn:aws:iam::149315467351:policy/ScopePermissionBoundary'
